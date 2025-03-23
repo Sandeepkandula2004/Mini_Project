@@ -1,0 +1,7 @@
+face_recognition
+flask
+flask_mail
+flask_cors
+opencv-python
+inference_sdk
+mediapipe
