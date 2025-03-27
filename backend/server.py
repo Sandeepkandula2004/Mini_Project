@@ -6,10 +6,15 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_mail import Mail, Message
 from final_oops import UniformViolationDetector
-
+from dotenv import load_dotenv
 app = Flask(__name__)
 CORS(app)
 
+load_dotenv()
+
+mail_username = os.getenv('MAIL_USERNAME')
+mail_password = os.getenv('MAIL_PASSWORD')
+mail_default_sender = os.getenv('MAIL_DEFAULT_SENDER')
 # Create required directories
 UPLOAD_FOLDER = "uploads"
 PROCESSED_FOLDER = "processed_images"
@@ -26,9 +31,9 @@ detector = UniformViolationDetector(API_URL, API_KEY, FACE_MODEL_PATH)
 app.config['MAIL_SERVER'] = 'smtp.office365.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = '22341A4217@gmrit.edu.in'
-app.config['MAIL_PASSWORD'] = 'sandeep@12345'  # ⚠️ Store this securely!
-app.config['MAIL_DEFAULT_SENDER'] = '22341A4217@gmrit.edu.in'
+app.config['MAIL_USERNAME'] = mail_username
+app.config['MAIL_PASSWORD'] = mail_password
+app.config['MAIL_DEFAULT_SENDER'] = mail_default_sender
 
 mail = Mail(app)
 
