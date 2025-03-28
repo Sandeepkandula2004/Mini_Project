@@ -66,7 +66,7 @@ const ImageUploader = () => {
       </nav>
 
       {/* Main Content */}
-      <div className="p-4 max-w-lg mx-auto">
+      <div className="p-4 max-w-4xl mx-auto">
         <h2 className="text-2xl font-semibold mb-4 text-center">
           Upload Image for Processing
         </h2>
@@ -78,20 +78,9 @@ const ImageUploader = () => {
           className="mb-2 block w-full text-center"
         />
 
-        {selectedImage && (
-          <div className="my-4 text-center">
-            <h3 className="text-lg font-semibold mb-2">Selected Image:</h3>
-            <img
-              src={URL.createObjectURL(selectedImage)}
-              alt="Selected"
-              className="w-auto max-w-full h-auto object-cover rounded border mx-auto"
-            />
-          </div>
-        )}
-
         <button
           onClick={handleUpload}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 block w-full"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 block w-full my-4"
           disabled={loading}
         >
           {loading ? "Processing..." : "Upload & Detect"}
@@ -99,6 +88,34 @@ const ImageUploader = () => {
 
         {error && <p className="text-red-500 mt-2 text-center">{error}</p>}
 
+        {/* Image Display Section - Side by Side */}
+        <div className="flex flex-wrap justify-center gap-6 mt-4">
+          {/* Selected Image */}
+          {selectedImage && (
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-2">Selected Image:</h3>
+              <img
+                src={URL.createObjectURL(selectedImage)}
+                alt="Selected"
+                className="w-96 max-w-full h-auto object-cover rounded border"
+              />
+            </div>
+          )}
+
+          {/* Processed Image */}
+          {processedImage && (
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-2">Processed Image:</h3>
+              <img
+                src={processedImage}
+                alt="Processed"
+                className="w-96 max-w-full h-auto object-cover rounded border"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Detected Face IDs */}
         {detectedFaces.length > 0 && (
           <div className="mt-4 p-2 border rounded text-center">
             <h3 className="text-lg font-semibold">Detected Face IDs:</h3>
@@ -107,17 +124,6 @@ const ImageUploader = () => {
                 <li key={index}>{id}</li>
               ))}
             </ul>
-          </div>
-        )}
-
-        {processedImage && (
-          <div className="mt-4 text-center">
-            <h3 className="text-lg font-semibold mb-2">Processed Image:</h3>
-            <img
-              src={processedImage}
-              alt="Processed"
-              className="w-auto max-w-full h-auto object-cover rounded border mx-auto"
-            />
           </div>
         )}
       </div>

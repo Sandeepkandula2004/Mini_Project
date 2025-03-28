@@ -6,15 +6,21 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_mail import Mail, Message
 from final_oops import UniformViolationDetector
-from dotenv import load_dotenv
+from concurrent.futures import ThreadPoolExecutor
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from dotenv import load_env
+
+load_env()
+# Email credentials
+EMAIL = os.getenv("GMAIL")
+APP_PASSWORD = os.getenv("APP_PASSWORD") # Use App Password for Gmail
+
+executor = ThreadPoolExecutor()
 app = Flask(__name__)
 CORS(app)
 
-load_dotenv()
-
-mail_username = os.getenv('MAIL_USERNAME')
-mail_password = os.getenv('MAIL_PASSWORD')
-mail_default_sender = os.getenv('MAIL_DEFAULT_SENDER')
 # Create required directories
 UPLOAD_FOLDER = "uploads"
 PROCESSED_FOLDER = "processed_images"
@@ -27,15 +33,7 @@ API_KEY = "vTd7sGLZDtRa0U3aTpeD"
 FACE_MODEL_PATH = "EncodeFile.p"
 detector = UniformViolationDetector(API_URL, API_KEY, FACE_MODEL_PATH)
 
-# Flask-Mail Configuration (Outlook SMTP)
-app.config['MAIL_SERVER'] = 'smtp.office365.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = mail_username
-app.config['MAIL_PASSWORD'] = mail_password
-app.config['MAIL_DEFAULT_SENDER'] = mail_default_sender
 
-mail = Mail(app)
 
 def get_db_connection():
     """Establish and return a database connection."""
@@ -66,8 +64,25 @@ def send_violation_email(student_ids):
     recipient_emails = [f"{student_id}@gmrit.edu.in" for student_id in student_ids]
 
     for recipient in recipient_emails:
-        msg = Message(subject, recipients=[recipient], body=body)
-        mail.send(msg)
+        try:
+            # Create the email
+            msg = MIMEMultipart()
+            msg["From"] = EMAIL
+            msg["To"] = recipient
+            msg["Subject"] = subject
+            msg.attach(MIMEText(body, "plain"))
+
+            # Connect to Gmail SMTP server using SSL (Port 465)
+            server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+            server.login(EMAIL, APP_PASSWORD)
+            server.sendmail(EMAIL, recipient, msg.as_string())
+            server.quit()
+
+            print(f"✅ Email sent successfully to {recipient}!")
+        except Exception as e:
+            print(f"❌ Failed to send email to {recipient}: {e}")
+
+
 
 @app.route('/api/process', methods=['POST'])
 def process_image():
@@ -85,7 +100,9 @@ def process_image():
 
         if detected_face_ids:
             update_fines(detected_face_ids)
-            send_violation_email(detected_face_ids)
+
+            # Send email in the background
+            executor.submit(send_violation_email, detected_face_ids)
 
         return jsonify({
             "detected_face_ids": detected_face_ids,
@@ -93,6 +110,7 @@ def process_image():
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @app.route('/api/update_fine/<unique_id>', methods=['POST'])
 def update_fine(unique_id):
