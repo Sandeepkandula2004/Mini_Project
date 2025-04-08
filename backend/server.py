@@ -10,10 +10,9 @@ from concurrent.futures import ThreadPoolExecutor
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from dotenv import load_dotenv
 
-# Email credentials
-#EMAIL = "veresandeep@gmail.com"
-#APP_PASSWORD = "uymhhjzlhqhrakci"  # Use App Password for Gmail
+load_dotenv()
 
 executor = ThreadPoolExecutor()
 app = Flask(__name__)
@@ -55,8 +54,8 @@ def update_fines(detected_face_ids):
     print("Fines updated for:", updated_students)
 
 # Office365 Email credentials
-EMAIL = "22341A4217@gmrit.edu.in"
-PASSWORD = "sandeep@12345"  # Replace with app password if needed
+EMAIL = os.getenv("EMAIL")
+PASSWORD = os.getenv("PASSWORD")
 
 def send_violation_email(student_ids):
     """Send email notifications for uniform violations using Office365 SMTP."""
