@@ -10,12 +10,10 @@ from concurrent.futures import ThreadPoolExecutor
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from dotenv import load_env
 
-load_env()
 # Email credentials
-EMAIL = os.getenv("GMAIL")
-APP_PASSWORD = os.getenv("APP_PASSWORD") # Use App Password for Gmail
+#EMAIL = "veresandeep@gmail.com"
+#APP_PASSWORD = "uymhhjzlhqhrakci"  # Use App Password for Gmail
 
 executor = ThreadPoolExecutor()
 app = Flask(__name__)
@@ -56,32 +54,34 @@ def update_fines(detected_face_ids):
 
     print("Fines updated for:", updated_students)
 
+# Office365 Email credentials
+EMAIL = "22341A4217@gmrit.edu.in"
+PASSWORD = "sandeep@12345"  # Replace with app password if needed
+
 def send_violation_email(student_ids):
-    """Send email notifications for uniform violations."""
+    """Send email notifications for uniform violations using Office365 SMTP."""
     subject = "Uniform Violation Detected"
-    body = f"The following students have uniform violations: {', '.join(student_ids)}."
+    sanitized_ids = [student_id.strip() for student_id in student_ids]
+    body = f"You have uniform violations: {', '.join(sanitized_ids)}."
+    recipient_emails = [f"{student_id}@gmrit.edu.in" for student_id in sanitized_ids]
 
-    recipient_emails = [f"{student_id}@gmrit.edu.in" for student_id in student_ids]
-
-    for recipient in recipient_emails:
+    for student_id, recipient in zip(sanitized_ids, recipient_emails):
         try:
-            # Create the email
             msg = MIMEMultipart()
             msg["From"] = EMAIL
             msg["To"] = recipient
             msg["Subject"] = subject
             msg.attach(MIMEText(body, "plain"))
 
-            # Connect to Gmail SMTP server using SSL (Port 465)
-            server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-            server.login(EMAIL, APP_PASSWORD)
+            server = smtplib.SMTP("smtp.office365.com", 587)
+            server.starttls()
+            server.login(EMAIL, PASSWORD)
             server.sendmail(EMAIL, recipient, msg.as_string())
             server.quit()
 
-            print(f"✅ Email sent successfully to {recipient}!")
-        except Exception as e:
-            print(f"❌ Failed to send email to {recipient}: {e}")
-
+            print(f"✅ Email sent successfully to {recipient} (ID: {student_id})")
+        except Exception:
+            pass  # You can replace this with logging to a file if needed
 
 
 @app.route('/api/process', methods=['POST'])
