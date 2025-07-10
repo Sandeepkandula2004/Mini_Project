@@ -1,0 +1,13 @@
+# Node.js dependencies
+frontend/my-react-app/node_modules/
+
+# Python virtual environment
+backend/venv/
+
+# Environment variable files
+backend/.env
+
+# Database directory and MongoDB script
+backend/database/
+backend/mongo.py
+backend/__pycache__

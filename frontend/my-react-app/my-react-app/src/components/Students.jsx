@@ -51,20 +51,16 @@ const StudentDetail = () => {
         <table className="min-w-full border border-gray-300">
           <thead>
             <tr className="bg-gray-200">
-              <th className="border px-4 py-2 text-center">Name</th>
-              <th className="border px-4 py-2 text-center">Fine Amount</th>
+              <th className="border px-4 py-2 text-center">JNTU ID</th>
+              <th className="border px-4 py-2 text-center">Fine Amount (₹)</th>
             </tr>
           </thead>
           <tbody>
             {students.length > 0 ? (
               students.map((student) => (
-                <tr key={student.id} className="border">
-                  <td className="border px-4 py-2 text-center">
-                    {student.JNTU}
-                  </td>
-                  <td className="border px-4 py-2 text-center">
-                    ${student.fine_amount}
-                  </td>
+                <tr key={student.JNTU} className="border">
+                  <td className="border px-4 py-2 text-center">{student.JNTU}</td>
+                  <td className="border px-4 py-2 text-center">{student.fine_amount}</td>
                 </tr>
               ))
             ) : (

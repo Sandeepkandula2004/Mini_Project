@@ -45,6 +45,7 @@ class UniformViolationDetector:
 
         # Check for uniform violations
         if "BLACK_SHOES" not in detected_objects or "ID_CARD" not in detected_objects:
+            
             recognized_faces = self.face_recognition.recognize_faces(image)
             for (fx, fy, fw, fh, name) in recognized_faces:
                 cv2.rectangle(image, (fx, fy), (fx+fw, fy+fh), (0, 0, 255), 2)

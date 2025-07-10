@@ -1,6 +1,5 @@
 import os
 import cv2
-import sqlite3
 import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -11,6 +10,8 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from dotenv import load_dotenv
+from pymongo import MongoClient
+from bson.objectid import ObjectId
 
 load_dotenv()
 
@@ -25,18 +26,25 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(PROCESSED_FOLDER, exist_ok=True)
 
 # API Configuration
-API_URL = "https://detect.roboflow.com"
-API_KEY = "vTd7sGLZDtRa0U3aTpeD"
+API_URL = os.getenv("API_URL")
+API_KEY = os.getenv("API_KEY")
 FACE_MODEL_PATH = "EncodeFile.p"
 detector = UniformViolationDetector(API_URL, API_KEY, FACE_MODEL_PATH)
 
+# MongoDB Configuration
+from urllib.parse import quote_plus
+MONGO_USER = os.getenv("MONGO_USER", "sandeep")
+mongo_password = quote_plus(os.getenv("MONGO_PASS")) 
+MONGO_URI = f"mongodb+srv://sandeep:{mongo_password}@cluster0.d94uq9i.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+client = MongoClient(MONGO_URI)
+db = client["my_database"]
+student_fine_collection = db["student_fine"]
 
+# Office365 Email credentials
+EMAIL = os.getenv("EMAIL")
+PASSWORD = os.getenv("PASSWORD")
 
-def get_db_connection():
-    """Establish and return a database connection."""
-    conn = sqlite3.connect('database/student.db')
-    conn.row_factory = sqlite3.Row
-    return conn
+# Function to update fines
 
 def update_fines(detected_face_ids):
     """Update fines for detected students."""
@@ -53,9 +61,7 @@ def update_fines(detected_face_ids):
 
     print("Fines updated for:", updated_students)
 
-# Office365 Email credentials
-EMAIL = os.getenv("EMAIL")
-PASSWORD = os.getenv("PASSWORD")
+# Send email
 
 def send_violation_email(student_ids):
     """Send email notifications for uniform violations using Office365 SMTP."""
@@ -82,7 +88,7 @@ def send_violation_email(student_ids):
         except Exception:
             pass  # You can replace this with logging to a file if needed
 
-
+# Process image
 @app.route('/api/process', methods=['POST'])
 def process_image():
     """Process an uploaded image and detect uniform violations."""
@@ -110,26 +116,19 @@ def process_image():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
+# Update fine
 @app.route('/api/update_fine/<unique_id>', methods=['POST'])
 def update_fine(unique_id):
     """Increase fine amount for a student."""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
+        result = student_fine_collection.update_one(
+            {"JNTU": unique_id},
+            {"$inc": {"fine_amount": 50}}
+        )
 
-        cursor.execute("""
-            UPDATE student_fine
-            SET fine_amount = COALESCE(fine_amount, 0) + 50
-            WHERE JNTU = ?;
-        """, (unique_id,))
-
-        if cursor.rowcount == 0:
-            conn.close()
+        if result.matched_count == 0:
             return jsonify({"message": "Student ID not found"}), 404
 
-        conn.commit()
-        conn.close()
         return jsonify({"message": "Fine amount updated successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -138,15 +137,12 @@ def update_fine(unique_id):
 def get_all_students():
     """Retrieve all student fine records."""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM student_fine;")
-        rows = cursor.fetchall()
-        students = [dict(row) for row in rows]
-        conn.close()
+        students = list(student_fine_collection.find({}, {"_id": 0}))
         return jsonify(students), 200
     except Exception as e:
+        print("Error in /api/students:", e)  # <--- Add this
         return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
