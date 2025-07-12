@@ -1,11 +1,11 @@
 # Use a slim official Python image
 FROM python:3.11-slim
 
-# Avoid .pyc files and force unbuffered output
+# Environment settings to reduce Python noise
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# System dependencies for dlib and curl
+# Install system dependencies for dlib + curl
 RUN apt-get update && apt-get install -y \
     curl \
     cmake \
@@ -17,23 +17,21 @@ RUN apt-get update && apt-get install -y \
     libboost-all-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# Set working directory inside container
 WORKDIR /app
 
-# Copy project files
+# Copy all files from your repo into container
 COPY . .
 
-# Download and install precompiled dlib wheel
-RUN curl -L -O https://github.com/Sandeepkandula2004/Mini_Project/releases/download/v2.0.0/dlib_bin-19.24.6-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+# Clean up any old .whl and download the correct one
+RUN rm -f dlib_bin*.whl && \
+    curl -L -o dlib_bin.whl https://github.com/Sandeepkandula2004/Mini_Project/releases/download/v2.0.0/dlib_bin-19.24.6-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl && \
+    pip install dlib_bin.whl
 
-RUN ls -lh dlib_bin*.whl && pip install dlib_bin-*.whl
-
-RUN pip install dlib_bin-19.24.6-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl || (cat dlib_bin-*.whl && false)
-
-# Remove dlib line from requirements.txt and install the rest
+# Remove dlib from requirements and install the rest
 RUN grep -v '^dlib' requirements.txt > clean.txt && pip install -r clean.txt
 
-# Expose the port (optional, useful for clarity)
+# Expose Flask port (optional but good practice)
 EXPOSE 8000
 
 # Start the Flask app using Gunicorn
