@@ -1,10 +1,11 @@
 # Use a suitable Python base image for your Flask app
-FROM python:3.11-slim # Or python:3.11-alpine for a smaller image
+FROM python:3.11-slim
 
-WORKDIR /app
+# Environment settings to reduce Python noise
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Copy your application code
-COPY . .
+
 
 # Install build dependencies for dlib (these are generally needed for compiling C++ extensions on Linux)
 RUN apt-get update && \
@@ -18,6 +19,11 @@ RUN apt-get update && \
     # Add any other system-level dependencies dlib or your app might need
     && rm -rf /var/lib/apt/lists/*
 
+
+WORKDIR /app
+
+    # Copy your application code
+COPY . .
 # Correctly download and install the dlib wheel for Linux
 # Use the URL that points to your LINUX-COMPATIBLE wheel
 # And ensure the downloaded file keeps its full, original filename.
