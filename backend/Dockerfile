@@ -25,7 +25,10 @@ COPY . .
 
 # Download and install precompiled dlib wheel
 RUN curl -L -O https://github.com/Sandeepkandula2004/Mini_Project/releases/download/v2.0.0/dlib_bin-19.24.6-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
-RUN pip install dlib_bin-19.24.6-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+
+RUN ls -lh dlib_bin*.whl && pip install dlib_bin-*.whl
+
+RUN pip install dlib_bin-19.24.6-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl || (cat dlib_bin-*.whl && false)
 
 # Remove dlib line from requirements.txt and install the rest
 RUN grep -v '^dlib' requirements.txt > clean.txt && pip install -r clean.txt
