@@ -1,4 +1,4 @@
-dlib @ https://github.com/Sandeepkandula2004/Mini_Project/releases/download/v1.0.0/dlib-19.24.1-cp311-cp311-win_amd64.whl
+#dlib @ https://github.com/Sandeepkandula2004/Mini_Project/releases/download/v1.0.0/dlib-19.24.1-cp311-cp311-win_amd64.whl
 dotenv==0.9.9
 face-recognition
 Flask==3.1.1
@@ -11,3 +11,4 @@ opencv-python==4.10.0.84
 pymongo==3.12.0
 python-dotenv==1.1.1
 gunicorn
+dlib
