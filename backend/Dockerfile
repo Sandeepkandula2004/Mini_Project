@@ -7,6 +7,7 @@ ENV PYTHONUNBUFFERED=1
 
 # System dependencies for dlib
 RUN apt-get update && apt-get install -y \
+    curl \
     cmake \
     build-essential \
     libopenblas-dev \
