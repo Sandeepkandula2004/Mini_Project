@@ -1,5 +1,5 @@
 # Use a suitable Python base image for your Flask app
-FROM python:3.11-slim-buster # Or python:3.11-alpine for a smaller image
+FROM python:3.11-slim # Or python:3.11-alpine for a smaller image
 
 WORKDIR /app
 
